@@ -1,0 +1,869 @@
+{
+  "name": "camera_attendance_store",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "attendance",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1664,
+        -688
+      ],
+      "id": "e2329d6d-4d0e-45c8-875b-37c2b8532646",
+      "name": "Webhook",
+      "webhookId": "a8d452b6-c9fd-4651-8b17-2738bee7cad0",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9,
+              "triggerAtMinute": null
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1648,
+        -464
+      ],
+      "id": "11a34561-0db5-47c5-8cdb-7d47a8fdfc7b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1138689491,
+          "mode": "list",
+          "cachedResultName": "student",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit#gid=1138689491"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1296,
+        -464
+      ],
+      "id": "e02258e6-f730-4768-bd22-ac1a45efd6c8",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6PJCUQYIydyqRqds",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nlet present = 0;\nlet absent = 0;\n\n// TODAY date column\nconst attendanceDate = new Date().toISOString().split(\"T\")[0];\n\nitems.forEach(item => {\n  const value = item.json[attendanceDate]\n    ? String(item.json[attendanceDate]).trim().toLowerCase()\n    : \"\";\n\n  if (value === \"present\" || value === \"late\") {\n    present++;\n  } else {\n    absent++;\n  }\n});\n\nconst summary = `Total ${present} Present and ${absent} Absent`;\n\nreturn [{\n  json: {\n    date: attendanceDate,\n    present,\n    absent,\n    summary\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        -464
+      ],
+      "id": "da09b500-394d-45e1-8743-ababca0daa64",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "monthly_attendance_report",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -448,
+        -224
+      ],
+      "id": "dbfe8bf2-0772-4dc7-a084-1869dec25ac5",
+      "name": "Send a message",
+      "webhookId": "fb688049-adec-42d9-b07e-37b6fd52d3a9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "8XnQ5qwjBFAFIWL1",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 225528921,
+          "mode": "list",
+          "cachedResultName": "stu_data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit#gid=225528921"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -864,
+        -224
+      ],
+      "id": "4421135b-df32-4041-8234-1f593ecec55c",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6PJCUQYIydyqRqds",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1664,
+        -240
+      ],
+      "id": "633d29ba-94d1-4dda-8eaf-a7d8c667e875",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1138689491,
+          "mode": "list",
+          "cachedResultName": "student",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit#gid=1138689491"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1344,
+        -224
+      ],
+      "id": "87a1ddba-cd76-425e-9af6-b7a0c1d4dc8d",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6PJCUQYIydyqRqds",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// -----------------------------\n// LAST MONTH RANGE\n// -----------------------------\nconst now = new Date();\nconst startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);\nconst endDate = new Date(now.getFullYear(), now.getMonth(), 0);\n\n// Month label (ex: Dec 2025)\nconst monthLabel = startDate.toLocaleString(\"en-IN\", {\n  month: \"short\",\n  year: \"numeric\"\n});\n\n// -----------------------------\n// STORAGE\n// -----------------------------\nconst report = {};\n\n// -----------------------------\n// PROCESS EACH STUDENT ROW\n// -----------------------------\nitems.forEach(item => {\n  const row = item.json;\n  const name = row.name?.toString().trim();\n  if (!name) return;\n\n  if (!report[name]) {\n    report[name] = {\n      name,\n      month: monthLabel,   // 👈 month column\n      present: 0,\n      absent: 0,\n      working_days: 0,\n      percentage: 0\n    };\n  }\n\n  // loop all columns\n  Object.keys(row).forEach(key => {\n\n    // date column check\n    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(key)) return;\n\n    const colDate = new Date(key.replace(/-/g, \"/\"));\n    if (colDate < startDate || colDate > endDate) return;\n\n    const value = row[key]?.toString().trim().toLowerCase();\n\n    // blank = absent\n    report[name].working_days++;\n\n    if (value === \"present\" || value === \"late\") {\n      report[name].present++;\n    } else {\n      report[name].absent++;\n    }\n  });\n});\n\n// -----------------------------\n// CALCULATE PERCENTAGE\n// -----------------------------\nObject.values(report).forEach(r => {\n  r.percentage =\n    r.working_days > 0\n      ? Number(((r.present / r.working_days) * 100).toFixed(2))\n      : 0;\n});\n\n// -----------------------------\n// OUTPUT (Google Sheets Update)\n// -----------------------------\nreturn Object.values(report).map(r => ({\n  json: r\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1184,
+        -224
+      ],
+      "id": "71ecaab6-dc3f-4003-b8e5-5fca6e9cdd2d",
+      "name": "Code in JavaScript1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "sendTo": "karthikeyanm0625@gmail.com",
+        "subject": "daily attendance report",
+        "emailType": "text",
+        "message": "={{ $json.summary }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -896,
+        -464
+      ],
+      "id": "61bb2ee9-c0f7-4666-9b70-eee8ed1b65f8",
+      "name": "Send a message1",
+      "webhookId": "e05e2477-d8f1-45d9-9f20-f4329bcd97a3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "8XnQ5qwjBFAFIWL1",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 843987794,
+          "mode": "list",
+          "cachedResultName": "monthly_report",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit#gid=843987794"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "present",
+              "displayName": "present",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "absent",
+              "displayName": "absent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_days",
+              "displayName": "total_days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "working_days",
+              "displayName": "working_days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "percentage",
+              "displayName": "percentage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "month",
+              "displayName": "month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1024,
+        -224
+      ],
+      "id": "8f4575c3-a6be-406c-9375-51a3ba6ad55a",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6PJCUQYIydyqRqds",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.timestamp }}",
+        "format": "custom",
+        "customFormat": "MM",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -1472,
+        -464
+      ],
+      "id": "e69605b6-08be-4866-abc8-f9857b36647d",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.timestamp }}",
+        "format": "custom",
+        "customFormat": "MM",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -1504,
+        -240
+      ],
+      "id": "d6deaff0-c5da-4e98-bad3-806174baa33b",
+      "name": "Date & Time1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $json.body.name }}",
+            "Date": "={{ $json.body.date }}",
+            "Time": "={{ $json.body.time }}",
+            "Status": "={{ $json.body.status }}"
+          },
+          "matchingColumns": [
+            "name"
+          ],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1328,
+        -688
+      ],
+      "id": "4e50c9e8-4032-407c-b196-f447fbe3c864",
+      "name": "Append row in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6PJCUQYIydyqRqds",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1138689491,
+          "mode": "list",
+          "cachedResultName": "student",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit#gid=1138689491"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1152,
+        -688
+      ],
+      "id": "256bbca0-60b0-4a1d-adc8-e4a61d77385c",
+      "name": "Get row(s) in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6PJCUQYIydyqRqds",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5cd652b3-e25a-4e1b-aae0-945bc69b6e7b",
+              "name": "body.name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "a84458e6-3d1b-4434-b93a-d83d1c1694db",
+              "name": "body.date",
+              "value": "={{ $json.body.date }}",
+              "type": "string"
+            },
+            {
+              "id": "7d2d37a1-735e-4c13-bf36-33c1c37379d1",
+              "name": "body.time",
+              "value": "={{ $json.body.time }}",
+              "type": "string"
+            },
+            {
+              "id": "da6b29eb-9e22-4a4b-9dce-48a572cb3e18",
+              "name": "body.status",
+              "value": "={{ $json.body.status }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1488,
+        -688
+      ],
+      "id": "202d4ca2-9aea-403b-abe9-f05997b98890",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1138689491,
+          "mode": "list",
+          "cachedResultName": "student",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H9a5JAMqG-lvBXQyxnda84VffAoNKHmyov4aMx1hYXY/edit#gid=1138689491"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "2025-12-28",
+              "displayName": "2025-12-28",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "2026-01-09",
+              "displayName": "2026-01-09",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "2026-01-10",
+              "displayName": "2026-01-10",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -768,
+        -688
+      ],
+      "id": "4597251b-5c68-47fc-9e8c-02d0432da4e7",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6PJCUQYIydyqRqds",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ==========================================\n// FINAL ATTENDANCE + AUTO ABSENT (IST)\n// ==========================================\n\n// Webhook input\nconst body = $node[\"Webhook\"].json.body || {};\nconst attDate = body.date; // yyyy-mm-dd\n\nconst recognizedName = body.name\n  ? String(body.name).split(\"_\").pop().trim().toLowerCase()\n  : null;\n\n// ---------- FORCE IST TIME ----------\nconst nowUTC = new Date();\nconst istTime = new Date(nowUTC.getTime() + 5.5 * 60 * 60 * 1000);\n\nconst h = istTime.getHours();\nconst m = istTime.getMinutes();\n\n// Time windows\nconst isPresentTime = h === 9 && m < 5;             // 9:00–9:05\nconst isLateTime = h === 9 && m >= 5 && m < 10;     // 9:05–9:10\nconst isAfter910 = h > 9 || (h === 9 && m >= 10);   // after 9:10\n// -----------------------------------\n\nlet result = [];\n\n// Loop sheet rows\nitems.forEach((item, index) => {\n  const sheetName = item.json.name\n    ? String(item.json.name).trim().toLowerCase()\n    : \"\";\n\n  const existing = item.json[attDate];\n\n  // ❌ Already marked → never overwrite\n  if (existing) return;\n\n  // ✅ 9:00–9:05 → present\n  if (isPresentTime && recognizedName && sheetName === recognizedName) {\n    result.push({\n      json: {\n        row_number: index + 2,\n        [attDate]: \"present\"\n      }\n    });\n    return;\n  }\n\n  // ✅ 9:05–9:10 → late\n  if (isLateTime && recognizedName && sheetName === recognizedName) {\n    result.push({\n      json: {\n        row_number: index + 2,\n        [attDate]: \"late\"\n      }\n    });\n    return;\n  }\n\n  // ✅ After 9:10 → auto absent for everyone not marked\n  if (isAfter910) {\n    result.push({\n      json: {\n        row_number: index + 2,\n        [attDate]: \"absent\"\n      }\n    });\n  }\n});\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        -688
+      ],
+      "id": "8c774d0a-4bfb-41bf-b1e1-85a925d0cc80",
+      "name": "Code in JavaScript2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst students = {};\nlet result = [];\n\n// ------------------------------\n// GROUP ATTENDANCE BY STUDENT\n// ------------------------------\nfor (let i = 0; i < items.length; i++) {\n  const row = items[i].json;\n\n  if (!row.name || !row.email) continue;\n\n  const name = String(row.name).trim();\n  const email = String(row.email).trim();\n\n  if (!students[name]) {\n    students[name] = {\n      name: name,\n      email: email,\n      present: 0,\n      absent: 0,\n      workingDays: 0\n    };\n  }\n\n  for (const key in row) {\n    // Date column check (yyyy-mm-dd)\n    if (!key.match(/^\\d{4}-\\d{2}-\\d{2}$/)) continue;\n    if (!row[key]) continue;\n\n    students[name].workingDays++;\n\n    const status = String(row[key]).trim().toLowerCase();\n\n    if (status === \"present\" || status === \"late\") {\n      students[name].present++;\n    } else if (status === \"absent\") {\n      students[name].absent++;\n    }\n  }\n}\n\n// ------------------------------\n// PREPARE INDIVIDUAL MAILS\n// ------------------------------\nfor (const name in students) {\n  const s = students[name];\n\n  if (!s.email || !s.email.includes(\"@\")) continue;\n\n  const percentage =\n    s.workingDays > 0\n      ? Number(((s.present / s.workingDays) * 100).toFixed(2))\n      : 0;\n\n  const mailBody =\n    \"Dear \" + s.name + \",\\n\\n\" +\n    \"Greetings.\\n\\n\" +\n    \"This is to inform you that your monthly attendance performance is given below:\\n\\n\" +\n    \"Student Name           : \" + s.name + \"\\n\" +\n    \"Total Working Days     : \" + s.workingDays + \"\\n\" +\n    \"Days Present           : \" + s.present + \"\\n\" +\n    \"Days Absent            : \" + s.absent + \"\\n\" +\n    \"Attendance Percentage  : \" + percentage + \"%\\n\\n\" +\n    \"Kindly verify the above details.\\n\" +\n    \"This is an auto-generated message.\\n\\n\" +\n    \"Regards,\\n\" +\n    \"Indra Ganesan College of Engineering\\n\" +\n    \"Department of B.Tech Artificial Intelligence and Data Science\";\n\n  result.push({\n    json: {\n      to: s.email,\n      subject: \"Monthly Attendance Performance\",\n      body: mailBody\n    }\n  });\n}\n\n// ------------------------------\n// FINAL OUTPUT\n// ------------------------------\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        -224
+      ],
+      "id": "e6056a76-366e-4645-aae3-2c00feb80d9f",
+      "name": "Code in JavaScript3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Date & Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Date & Time1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet3": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "1a19bb4b-b3bd-4667-8f30-64acd6366c42",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "76fc7959b5a442a618b154d3e271454f96f469204e98fac671c1f35cc2053870"
+  },
+  "id": "ed5IroeuTumkbTyS",
+  "tags": []
+}
